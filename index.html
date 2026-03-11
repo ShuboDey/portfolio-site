@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shubo Dey — Software Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --bg2: #111111; --bg3: #181818;
+      --border: #222222; --text: #e8e8e8; --muted: #666666;
+      --accent: #c8f542; --accent2: #f5a623; --white: #ffffff;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px; line-height: 1.7; overflow-x: hidden; cursor: none;
+    }
+    .cursor {
+      position: fixed; width: 10px; height: 10px;
+      background: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      position: fixed; width: 36px; height: 36px;
+      border: 1px solid var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.12s ease-out, width 0.2s, height 0.2s;
+      opacity: 0.5;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 100; opacity: 0.3;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 48px; border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    nav.scrolled { border-color: var(--border); background: rgba(10,10,10,0.92); backdrop-filter: blur(12px); }
+    .nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--white); text-decoration: none; letter-spacing: -0.5px; }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 0 48px 64px; position: relative; overflow: hidden;
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(200,245,66,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,245,66,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+    }
+    .hero-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .hero-name {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: clamp(64px, 10vw, 140px); line-height: 0.92;
+      letter-spacing: -3px; color: var(--white);
+      opacity: 0; animation: fadeUp 0.8s 0.35s forwards;
+    }
+    .hero-name .italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); }
+    .hero-bottom {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-top: 48px; opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-desc { max-width: 420px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+    .hero-desc strong { color: var(--text); font-weight: 400; }
+    .hero-cta { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--accent); color: #0a0a0a;
+      padding: 14px 28px; font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 13px; letter-spacing: 0.05em;
+      text-transform: uppercase; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s; cursor: none;
+      border: none;
+    }
+    .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 rgba(200,245,66,0.3); }
+    .btn-primary svg { transition: transform 0.2s; }
+    .btn-primary:hover svg { transform: translate(3px, -3px); }
+    .scroll-hint { color: var(--muted); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .scroll-line { width: 40px; height: 1px; background: var(--muted); position: relative; overflow: hidden; }
+    .scroll-line::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--accent); animation: scanLine 2s infinite; }
+    @keyframes scanLine { to { left: 100%; } }
+    section { padding: 120px 48px; border-top: 1px solid var(--border); }
+    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 64px; }
+    .section-num { font-size: 11px; color: var(--accent); letter-spacing: 0.12em; }
+    .section-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 52px); letter-spacing: -1.5px; color: var(--white); line-height: 1; }
+    .section-line { flex: 1; height: 1px; background: var(--border); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .about-text p { color: var(--muted); font-size: 14px; line-height: 1.9; margin-bottom: 20px; }
+    .about-text p strong { color: var(--text); font-weight: 500; }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+    .stat-box { background: var(--bg); padding: 32px; transition: background 0.2s; }
+    .stat-box:hover { background: var(--bg3); }
+    .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 48px; color: var(--accent); letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+    .skill-category { background: var(--bg); padding: 36px; transition: background 0.2s; }
+    .skill-category:hover { background: var(--bg3); }
+    .skill-cat-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .skill-cat-title::before { content: ''; display: block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag { font-size: 12px; color: var(--muted); border: 1px solid var(--border); padding: 4px 10px; transition: color 0.2s, border-color 0.2s; }
+    .skill-tag:hover { color: var(--text); border-color: var(--muted); }
+    .projects-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+    .project-card {
+      background: var(--bg); padding: 48px;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 48px; align-items: start;
+      transition: background 0.2s; position: relative; overflow: hidden;
+    }
+    .project-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform 0.3s; }
+    .project-card:hover { background: var(--bg3); }
+    .project-card:hover::before { transform: scaleY(1); }
+    .project-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .project-num { font-size: 11px; color: var(--accent); letter-spacing: 0.1em; }
+    .project-period { font-size: 11px; color: var(--muted); }
+    .project-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; color: var(--white); letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1.1; }
+    .project-desc { color: var(--muted); font-size: 13px; line-height: 1.8; margin-bottom: 24px; max-width: 620px; }
+    .project-stack { display: flex; flex-wrap: wrap; gap: 8px; }
+    .stack-tag { font-size: 11px; color: var(--accent); border: 1px solid rgba(200,245,66,0.2); padding: 3px 10px; letter-spacing: 0.06em; }
+    .project-grade { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .grade-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 56px; color: var(--white); letter-spacing: -3px; line-height: 1; opacity: 0.08; }
+    .grade-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+    .certs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+    .cert-card { background: var(--bg); padding: 36px; transition: background 0.2s; }
+    .cert-card:hover { background: var(--bg3); }
+    .cert-icon { width: 40px; height: 40px; background: rgba(200,245,66,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 18px; }
+    .cert-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--white); margin-bottom: 8px; line-height: 1.3; }
+    .cert-status { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .cert-status.earned { color: var(--accent); }
+    .cert-status.progress { color: var(--accent2); }
+    .edu-card { background: var(--bg2); border: 1px solid var(--border); padding: 48px; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: start; }
+    .edu-degree { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; color: var(--white); letter-spacing: -0.5px; margin-bottom: 8px; }
+    .edu-school { color: var(--accent); font-size: 13px; margin-bottom: 24px; letter-spacing: 0.04em; }
+    .edu-modules { display: flex; flex-wrap: wrap; gap: 8px; }
+    .edu-mod { font-size: 12px; color: var(--muted); border: 1px solid var(--border); padding: 4px 12px; }
+    .edu-grade { text-align: right; }
+    .edu-grade-big { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 72px; color: var(--accent); letter-spacing: -4px; line-height: 1; }
+    .edu-grade-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; text-align: right; margin-top: 4px; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .contact-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(40px, 5vw, 72px); color: var(--white); letter-spacing: -2px; line-height: 0.95; }
+    .contact-headline .accent { color: var(--accent); }
+    .contact-links { display: flex; flex-direction: column; gap: 1px; background: var(--border); margin-top: 40px; }
+    .contact-link { background: var(--bg); padding: 24px 28px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: var(--text); transition: background 0.2s, color 0.2s; font-size: 13px; }
+    .contact-link:hover { background: var(--bg3); color: var(--accent); }
+    .contact-link-label { text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; color: var(--muted); }
+    .contact-link-val { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px; }
+    .contact-arrow { color: var(--muted); transition: transform 0.2s, color 0.2s; }
+    .contact-link:hover .contact-arrow { transform: translate(4px, -4px); color: var(--accent); }
+    .contact-form-wrap { background: var(--bg2); border: 1px solid var(--border); padding: 40px; }
+    .form-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--white); margin-bottom: 28px; letter-spacing: -0.3px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+    .form-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 12px 16px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--accent); }
+    .form-input::placeholder { color: var(--muted); }
+    .form-textarea { resize: vertical; min-height: 120px; }
+    .form-feedback { padding: 12px 16px; font-size: 12px; margin-bottom: 20px; letter-spacing: 0.04em; }
+    .form-feedback.success { background: rgba(200,245,66,0.08); color: var(--accent); border: 1px solid rgba(200,245,66,0.2); }
+    .form-feedback.error { background: rgba(245,100,100,0.08); color: #f56464; border: 1px solid rgba(245,100,100,0.2); }
+    .btn-loading { opacity: 0.6; pointer-events: none; }
+    footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-size: 11px; color: var(--muted); }
+    .footer-status { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+    .status-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s, transform 0.7s; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 900px) {
+      nav { padding: 20px 24px; }
+      .nav-links { display: none; }
+      .hero, section { padding-left: 24px; padding-right: 24px; }
+      .hero-bottom { flex-direction: column; align-items: flex-start; gap: 32px; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+      .skills-grid, .certs-grid { grid-template-columns: 1fr; }
+      .project-card { grid-template-columns: 1fr; }
+      .edu-card { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav id="nav">
+    <a href="#" class="nav-logo">SD<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero" id="home">
+    <div class="hero-grid"></div>
+    <div class="hero-tag">Available for graduate roles</div>
+    <h1 class="hero-name">Shubo<br><span class="italic">Dey</span></h1>
+    <div class="hero-bottom">
+      <p class="hero-desc">
+        <strong>Software Engineer</strong> — First-Class Honours graduate specialising in
+        cloud infrastructure, distributed systems, and machine learning.
+        AWS Certified. Based in Preston, UK.
+      </p>
+      <div class="hero-cta">
+        <a href="mailto:shubodey56@gmail.com" class="btn-primary">
+          Get in touch
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 12L12 2M12 2H5M12 2V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <span class="scroll-hint">Scroll to explore <span class="scroll-line"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="section-header reveal">
+      <span class="section-num">01</span>
+      <h2 class="section-title">About</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>I'm a <strong>First-Class Software Engineering graduate</strong> from UCLan with a deep passion for building systems that are resilient, scalable, and well-crafted. I care about clean code, testability, and engineering that stands up under pressure.</p>
+        <p>My focus sits at the intersection of <strong>cloud infrastructure and software engineering</strong> — I love the challenge of designing systems that are not just functional but genuinely robust. From microservices to ML pipelines, I approach every problem with rigour and curiosity.</p>
+        <p>I hold an <strong>AWS Certified Cloud Practitioner</strong> certification and am actively working towards the Developer Associate and Solutions Architect Associate. I'm seeking graduate roles in cloud engineering and tech consultancy.</p>
+      </div>
+      <div class="about-stats reveal">
+        <div class="stat-box"><div class="stat-num">1st</div><div class="stat-label">Class Honours Degree</div></div>
+        <div class="stat-box"><div class="stat-num">87%</div><div class="stat-label">Final Year Project</div></div>
+        <div class="stat-box"><div class="stat-num">AWS</div><div class="stat-label">Cloud Practitioner</div></div>
+        <div class="stat-box"><div class="stat-num">4+</div><div class="stat-label">Major Projects</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="section-header reveal">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Skills</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="skills-grid reveal">
+      <div class="skill-category">
+        <div class="skill-cat-title">Languages</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Python</span><span class="skill-tag">JavaScript</span><span class="skill-tag">TypeScript</span><span class="skill-tag">Node.js</span><span class="skill-tag">Bash</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Cloud & Infrastructure</div>
+        <div class="skill-tags">
+          <span class="skill-tag">AWS</span><span class="skill-tag">Terraform</span><span class="skill-tag">Docker</span><span class="skill-tag">EC2</span><span class="skill-tag">S3</span><span class="skill-tag">IAM</span><span class="skill-tag">CloudFront</span><span class="skill-tag">Route 53</span><span class="skill-tag">Lambda</span><span class="skill-tag">DynamoDB</span><span class="skill-tag">API Gateway</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Software Engineering</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Microservices</span><span class="skill-tag">REST APIs</span><span class="skill-tag">SOLID</span><span class="skill-tag">Clean Code</span><span class="skill-tag">CI/CD</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Systems & Architecture</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Distributed Systems</span><span class="skill-tag">Event-Driven</span><span class="skill-tag">RabbitMQ</span><span class="skill-tag">System Resilience</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Data & ML</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Machine Learning</span><span class="skill-tag">MongoDB</span><span class="skill-tag">SQL</span><span class="skill-tag">Data Pipelines</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Collaboration</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Git</span><span class="skill-tag">Agile / Scrum</span><span class="skill-tag">Team Working</span><span class="skill-tag">Stakeholder Comms</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="section-header reveal">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Projects</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="projects-list">
+      <div class="project-card reveal">
+        <div>
+          <div class="project-meta"><span class="project-num">01</span><span class="project-period">Sep 2024 – Apr 2025</span></div>
+          <h3 class="project-title">YouTube Collaboration<br>Analysis Tool</h3>
+          <p class="project-desc">Full-stack Python application integrating the YouTube Data API, a MongoDB database layer, and a Decision Tree ML model to predict collaboration likelihood between channels. Delivered end-to-end to the highest standard in the cohort.</p>
+          <div class="project-stack"><span class="stack-tag">Python</span><span class="stack-tag">Flask</span><span class="stack-tag">MongoDB</span><span class="stack-tag">YouTube API</span><span class="stack-tag">Decision Tree ML</span><span class="stack-tag">Docker</span></div>
+        </div>
+        <div class="project-grade"><div class="grade-num">87%</div><div class="grade-label">Module grade</div></div>
+      </div>
+      <div class="project-card reveal">
+        <div>
+          <div class="project-meta"><span class="project-num">02</span><span class="project-period">Sep 2024 – Mar 2025</span></div>
+          <h3 class="project-title">MCQ Microservices<br>Platform</h3>
+          <p class="project-desc">Distributed microservices platform built from scratch featuring ETL, question, and submit services communicating asynchronously via RabbitMQ. Each service independently containerised with Docker. Demonstrates real-world event-driven architecture and cross-service resilience engineering.</p>
+          <div class="project-stack"><span class="stack-tag">Node.js</span><span class="stack-tag">Python</span><span class="stack-tag">RabbitMQ</span><span class="stack-tag">MongoDB</span><span class="stack-tag">Docker</span><span class="stack-tag">Event-Driven</span></div>
+        </div>
+        <div class="project-grade"><div class="grade-num">MQ</div><div class="grade-label">Distributed</div></div>
+      </div>
+      <div class="project-card reveal">
+        <div>
+          <div class="project-meta"><span class="project-num">03</span><span class="project-period">Oct 2025 – Present</span></div>
+          <h3 class="project-title">AWS Infrastructure<br>Automation</h3>
+          <p class="project-desc">Provisioned and managed scalable AWS infrastructure using Terraform — automating compute, networking, IAM access controls, and monitoring. Built for reliable, repeatable deployments with security and least-privilege access from the ground up.</p>
+          <div class="project-stack"><span class="stack-tag">AWS</span><span class="stack-tag">Terraform</span><span class="stack-tag">Python</span><span class="stack-tag">IAM</span><span class="stack-tag">EC2</span><span class="stack-tag">Linux</span></div>
+        </div>
+        <div class="project-grade"><div class="grade-num">IaC</div><div class="grade-label">Infrastructure</div></div>
+      </div>
+      <div class="project-card reveal">
+        <div>
+          <div class="project-meta"><span class="project-num">04</span><span class="project-period">Oct 2025 – Present</span></div>
+          <h3 class="project-title">Cloud Resume Challenge<br>Portfolio Site</h3>
+          <p class="project-desc">Designed and deployed a serverless portfolio site on AWS — S3 static hosting, CloudFront CDN, Route 53 DNS, ACM SSL, Lambda functions, API Gateway, and DynamoDB visitor counter. Includes a working contact form powered by SES.</p>
+          <div class="project-stack"><span class="stack-tag">AWS S3</span><span class="stack-tag">CloudFront</span><span class="stack-tag">Lambda</span><span class="stack-tag">DynamoDB</span><span class="stack-tag">API Gateway</span><span class="stack-tag">SES</span><span class="stack-tag">Route 53</span></div>
+        </div>
+        <div class="project-grade"><div class="grade-num">CRC</div><div class="grade-label">Live Project</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="education">
+    <div class="section-header reveal">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Education & Certs</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="edu-card reveal" style="margin-bottom: 1px;">
+      <div>
+        <h3 class="edu-degree">BSc (Hons) Software Engineering</h3>
+        <div class="edu-school">University of Central Lancashire (UCLan) · Preston, UK · 2022–2025</div>
+        <div class="edu-modules">
+          <span class="edu-mod">Artificial Intelligence — 73%</span>
+          <span class="edu-mod">Distributed Systems — 61%</span>
+          <span class="edu-mod">Software Architecture & Design</span>
+          <span class="edu-mod">Final Year Project — 87%</span>
+        </div>
+      </div>
+      <div class="edu-grade">
+        <div class="edu-grade-big">1st</div>
+        <div class="edu-grade-label">First-Class Honours</div>
+      </div>
+    </div>
+    <div class="certs-grid reveal" style="margin-top: 48px;">
+      <div class="cert-card"><div class="cert-icon">☁️</div><div class="cert-name">AWS Certified Cloud Practitioner</div><div class="cert-status earned">● Earned — Oct 2025</div></div>
+      <div class="cert-card"><div class="cert-icon">⚙️</div><div class="cert-name">AWS Developer – Associate</div><div class="cert-status progress">◐ In Progress</div></div>
+      <div class="cert-card"><div class="cert-icon">🏗️</div><div class="cert-name">AWS Solutions Architect – Associate</div><div class="cert-status progress">◐ In Progress</div></div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="section-header reveal">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Contact</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="contact-grid">
+      <div class="reveal">
+        <h2 class="contact-headline">Let's build<br>something<br><span class="accent">great.</span></h2>
+        <div class="contact-links">
+          <a href="mailto:shubodey56@gmail.com" class="contact-link">
+            <div><div class="contact-link-label">Email</div><div class="contact-link-val">shubodey56@gmail.com</div></div>
+            <span class="contact-arrow">↗</span>
+          </a>
+          <a href="https://linkedin.com/in/shubo-dey" target="_blank" class="contact-link">
+            <div><div class="contact-link-label">LinkedIn</div><div class="contact-link-val">linkedin.com/in/shubo-dey</div></div>
+            <span class="contact-arrow">↗</span>
+          </a>
+          <a href="https://shubodey.github.io" target="_blank" class="contact-link">
+            <div><div class="contact-link-label">GitHub</div><div class="contact-link-val">shubodey.github.io</div></div>
+            <span class="contact-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="contact-form-wrap">
+          <div class="form-title">Send a message</div>
+          <div id="form-success" style="display:none;" class="form-feedback success">✓ Message sent! I'll get back to you soon.</div>
+          <div id="form-error" style="display:none;" class="form-feedback error">✗ Something went wrong. Please try again.</div>
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" id="f-name" class="form-input" placeholder="Your name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="f-email" class="form-input" placeholder="your@email.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea id="f-message" class="form-input form-textarea" placeholder="What's on your mind?"></textarea>
+          </div>
+          <button id="form-submit" class="btn-primary" style="width:100%; justify-content:center; cursor:none;">
+            <span id="btn-text">Send message</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 12L12 2M12 2H5M12 2V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Shubo Dey. Built on AWS S3 + CloudFront + Lambda + DynamoDB.</p>
+    <div class="footer-status">
+      <span class="status-dot"></span>
+      <span id="visitor-count">Loading...</span>
+    </div>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animateCursor() {
+      cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => { cursor.style.width = '16px'; cursor.style.height = '16px'; ring.style.width = '52px'; ring.style.height = '52px'; });
+      el.addEventListener('mouseleave', () => { cursor.style.width = '10px'; cursor.style.height = '10px'; ring.style.width = '36px'; ring.style.height = '36px'; });
+    });
+
+    // Scroll nav
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 60); });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    // Visitor counter
+    fetch('https://r9snqlpdne.execute-api.eu-west-2.amazonaws.com/visitors')
+      .then(res => res.json())
+      .then(data => { document.getElementById('visitor-count').textContent = '👁 ' + data.count + ' visitors'; })
+      .catch(() => { document.getElementById('visitor-count').textContent = 'Open to opportunities'; });
+
+    // Contact form
+    const API_URL = 'https://iisip2268e.execute-api.eu-west-2.amazonaws.com/contact';
+    document.getElementById('form-submit').addEventListener('click', async () => {
+      const name = document.getElementById('f-name').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+      const message = document.getElementById('f-message').value.trim();
+      const btn = document.getElementById('form-submit');
+      const btnText = document.getElementById('btn-text');
+      const successEl = document.getElementById('form-success');
+      const errorEl = document.getElementById('form-error');
+      if (!name || !email || !message) {
+        errorEl.textContent = '✗ Please fill in all fields.';
+        errorEl.style.display = 'block'; successEl.style.display = 'none'; return;
+      }
+      btn.classList.add('btn-loading'); btnText.textContent = 'Sending...';
+      successEl.style.display = 'none'; errorEl.style.display = 'none';
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          successEl.style.display = 'block';
+          document.getElementById('f-name').value = '';
+          document.getElementById('f-email').value = '';
+          document.getElementById('f-message').value = '';
+        } else { throw new Error(); }
+      } catch {
+        errorEl.textContent = '✗ Something went wrong. Please try again.';
+        errorEl.style.display = 'block';
+      } finally {
+        btn.classList.remove('btn-loading'); btnText.textContent = 'Send message';
+      }
+    });
+  </script>
+</body>
+</html>
